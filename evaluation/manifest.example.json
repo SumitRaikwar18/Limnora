@@ -1,4 +1,13 @@
 {
   "label_source": "Team field judgments, not expert ground truth",
-  "cases": []
+  "cases": [
+    {
+      "observation_id": "00000000-0000-0000-0000-000000000000",
+      "permissioned_original": true,
+      "reference_category": "algae",
+      "ambiguous": false,
+      "expected_relevance": true,
+      "notes": "Visible surface film; no lab, toxicity or safety claim."
+    }
+  ]
 }

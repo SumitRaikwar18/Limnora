@@ -12,6 +12,8 @@ __v0_jsx-dev-runtime.ts
 .env.*
 !.env.example
 evaluation/results*.json
+LIMNORA-10-10-CODEX-BUILD.md
+FINAL-SPRINT-STATUS.md
 
 # Common ignores
 node_modules
