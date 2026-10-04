@@ -3,6 +3,8 @@ import { supabaseRest,supabaseFetch,url } from '@/lib/supabase-rest'
 import { preparePhoto } from '@/lib/photo'
 import { categories, identity, protect, uuid, withIdentity } from '@/lib/request-safety'
 import { observation, publicObservation } from '@/lib/evidence-store'
+import {bodyKinds,parseContext} from '@/lib/freshwater'
+import {readSource} from '@/lib/water-source'
 export async function GET(){try{
  const r=await supabaseRest('observations?select=*,confirmations(count),water_bodies(*)&order=observed_at.desc&limit=200')
  if(!r.ok)throw Error('Database tables unavailable')
@@ -18,6 +20,11 @@ export async function POST(request:Request){
  const category=String(form.get('category')||''),name=String(form.get('name')||'').trim().slice(0,120)||'Unnamed water body'
  if(!form.has('latitude')||!form.has('longitude')||!Number.isFinite(latitude)||Math.abs(latitude)>90||!Number.isFinite(longitude)||Math.abs(longitude)>180||!categories.includes(category))return NextResponse.json({error:'Invalid location or category'},{status:400})
  if(form.get('consent')!=='true')return NextResponse.json({error:'Please confirm photo rights and public/AI processing consent.'},{status:400})
+ if(form.get('freshwaterAttested')!=='true')return NextResponse.json({error:'Confirm this is an inland freshwater observation, not sea or brackish water.'},{status:400})
+ let fieldContext
+ try{fieldContext=parseContext(JSON.parse(String(form.get('fieldContext')||'{}')))}catch{return NextResponse.json({error:'Choose valid field conditions, or Unknown.'},{status:400})}
+ const kind=String(form.get('bodyKind')||'unknown')
+ if(!(bodyKinds as readonly string[]).includes(kind))return NextResponse.json({error:'Choose a valid water-body kind.'},{status:400})
  const observed=new Date(String(form.get('observedAt')||''))
  if(!Number.isFinite(observed.getTime())||observed.getTime()>Date.now()+300000||observed.getFullYear()<2000)return NextResponse.json({error:'Choose a valid observation date, not in the future.'},{status:400})
  const coverage=String(form.get('coverage')||'Unknown')
@@ -39,15 +46,22 @@ export async function POST(request:Request){
   waterBody=(await response.json())[0];if(!waterBody)return NextResponse.json({error:'Water body not found'},{status:400})
   if(parent?.water_body_id&&parent.water_body_id!==bodyId)return NextResponse.json({error:'Follow-up must reference the same water body'},{status:400})
  }else{
-  const response=await supabaseRest('water_bodies',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({name,type:'freshwater',latitude,longitude,place_label:'Map-selected community water point; not GPS-verified or authoritative OSM identity'})})
+  const token=String(form.get('sourceToken')||'')
+  const source=token?readSource(token,latitude,longitude):null
+  if(token&&!source)return NextResponse.json({error:'Map selection expired. Select the water body again.'},{status:400})
+  if(!source&&form.get('declaredBody')!=='true')return NextResponse.json({error:'Select mapped water or explicitly declare an unmapped freshwater body.'},{status:400})
+  const metadata=source?{source:'osm',source_url:source.source_url,map_name:source.name,name_source:source.name===name?'osm':'observer',freshwater_status:'observer_declared',retrieved_at:source.retrieved_at}:{source:'observer',name_source:'observer',freshwater_status:'observer_declared'}
+  const response=await supabaseRest('water_bodies'+(source?'?on_conflict=source_key':''),{method:'POST',headers:{Prefer:'return=representation'+(source?',resolution=ignore-duplicates':'')},body:JSON.stringify({name:source?.name||name,type:source?.kind!=='unknown'&&source?.kind?source.kind:kind,latitude,longitude,source_key:source?.source_key||null,source_metadata:metadata,place_label:source?'OSM inland water geometry; freshwater declared by observer':'Unmapped freshwater body declared by observer'})})
   if(!response.ok)throw Error('Water-body record could not be created')
-  waterBody=(await response.json())[0];bodyId=waterBody.id
+  waterBody=(await response.json())[0]
+  if(!waterBody&&source){const existing=await supabaseRest('water_bodies?source_key=eq.'+encodeURIComponent(source.source_key)+'&select=*');if(!existing.ok)throw Error('Water-body lookup unavailable');waterBody=(await existing.json())[0]}
+  if(!waterBody)throw Error('Water-body record unavailable');bodyId=waterBody.id
  }
  uploadedPath=crypto.randomUUID()+'.jpg'
  const upload=await supabaseFetch('/storage/v1/object/observation-photos/'+uploadedPath,{method:'POST',headers:{'Content-Type':'image/jpeg'},body:new Uint8Array(photo.bytes)})
  if(!upload.ok)throw Error('Photo storage unavailable')
  const {token,hash}=identity(request)
- const r=await supabaseRest('observations',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({water_body_id:bodyId,latitude:waterBody.latitude,longitude:waterBody.longitude,category,description:(waterBody.name+': '+String(form.get('description')||'')).slice(0,2000),photo_url:url+'/storage/v1/object/public/observation-photos/'+uploadedPath,coverage_level:coverage,observed_at:observed.toISOString(),ai_assessment:{status:'pending',owner_hash:hash,photo_hash:photo.hash,parent_id:parentId||null,review_history:[],assessment_history:[],photo_processing:'Re-encoded JPEG; EXIF removed'},privacy_precision:'public_water_body',verification_status:'community_review'})})
+ const r=await supabaseRest('observations',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({water_body_id:bodyId,latitude,longitude,category,description:(waterBody.name+': '+String(form.get('description')||'')).slice(0,2000),photo_url:url+'/storage/v1/object/public/observation-photos/'+uploadedPath,coverage_level:coverage,water_color:fieldContext.colour,smell_level:fieldContext.odour,field_context:fieldContext,freshwater_attested:true,observed_at:observed.toISOString(),ai_assessment:{status:'pending',owner_hash:hash,photo_hash:photo.hash,parent_id:parentId||null,review_history:[],assessment_history:[],photo_processing:'Re-encoded JPEG; EXIF removed'},privacy_precision:'public_water_body',verification_status:'community_review'})})
  if(!r.ok)throw Error('Report could not be saved')
  const row=(await r.json())[0];uploadedPath=''
  return withIdentity({observation:{...publicObservation(row),water_body:waterBody}},token)

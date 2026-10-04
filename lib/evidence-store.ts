@@ -8,7 +8,7 @@ export async function observation(id:string) {
 }
 export function publicEvidence(value:any) {
  if(!value)return value
- const {owner_hash,...safe}=value
+ const {owner_hash,photo_hash,attempt_history,...safe}=value
  return {...safe,review_history:(safe.review_history||[]).map(({reviewer_hash,...event}:any)=>event)}
 }
 export function publicObservation(row:any){

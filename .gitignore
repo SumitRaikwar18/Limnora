@@ -9,9 +9,13 @@ __v0_jsx-dev-runtime.ts
 # Environment variables
 .env*.local
 .env
+.env.*
+!.env.example
+evaluation/results*.json
 
 # Common ignores
 node_modules
 .next/
 tsconfig.tsbuildinfo
 .DS_Store
+.gstack/
