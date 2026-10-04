@@ -9,4 +9,4 @@ No ecological accuracy result has been measured yet. Synthetic integration fixtu
 
 Include ordinary vegetation, surface scum, litter, ordinary water and ambiguous/unrelated photos. Compare observer labels and independent image interpretations separately. Team labels are not expert ground truth. Small convenience samples cannot establish deployment accuracy.
 
-The tool deliberately fails on an empty manifest instead of producing an invented accuracy claim. It reads the current 200-record API window; larger datasets need pagination before evaluation.
+The tool deliberately fails on an empty manifest instead of producing an invented accuracy claim. Each case is fetched by its saved observation ID, so an older case is not excluded by a recent-record window. See [results](RESULTS.md) and [field evidence requirements](FIELD-CASE.md).

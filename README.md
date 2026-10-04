@@ -1,118 +1,150 @@
 # Limnora
 
+**From observation to evidence.**
+
 Limnora turns uncertain freshwater citizen observations into traceable, human-reviewed evidence and targeted revisit questions.
 
-**Hackathon tagline:** From observation to evidence: AI-supported freshwater citizen science that knows when to ask humans to look again.
+**Primary Track 3 · Responsible AI · Human-in-the-loop · One Health**
 
-**OneAquaHealth alignment:** primary Track 3 - AI-Supported Assessment; supporting Track 1 - Citizen Science UX and Track 2 - Data-to-Insight. Track 7 appears only as a prototype interoperability export, not validated FHIR conformance. No IEEE endorsement or scientific validation is claimed.
+Built for the [OneAquaHealth IEEE Global Hackathon 2026](https://oneaquahealth-ieee-hackathon.devpost.com/). Supporting Tracks 1 (Citizen Science UX) and 2 (Data-to-Insight).
 
-**Live demo:** TODO add deployed URL.
+[Public source repository](https://github.com/SumitRaikwar18/Limnora) · [Judge guide](docs/JUDGE-GUIDE.md) · [Submission description](docs/submission/DEVPOST.md) · [Demo script](docs/submission/DEMO-SCRIPT.md)
 
-**Demo video:** TODO add 3-5 minute video URL.
+Live demo: pending owner deployment and verification. Demo video: pending recording and public upload. These are explicit missing assets; no live URL has been supplied.
 
-**Safety statement:** Limnora is community evidence, not laboratory confirmation. It does not diagnose water safety, toxicity, pathogens, potability, pollution levels or ecosystem health from a photograph.
+## The problem
+
+Citizen photographs help communities document ponds, lakes and streams, but a quick label can misinterpret floating plants, surface films or ordinary vegetation. A single image cannot establish ecosystem health. Limnora keeps the original observation, independent image interpretation and human review together, so uncertainty becomes a specific request for better evidence.
+
+## Evidence Assurance Loop
+
+**AI disagreement is the next data-collection question.**
 
 ```mermaid
 flowchart LR
-  A[Citizen selects freshwater body] --> B[Observation + photo + field context]
-  B --> C[Server validates image and strips EXIF]
-  C --> D[(Supabase evidence record)]
-  D --> E[Independent image-first AI screening]
-  E --> F{Agreement or uncertainty}
-  F -->|screened| G[Human review remains open]
-  F -->|disputed or uncertain| H[Focused revisit question]
-  H --> I[Linked revisit]
-  I --> D
-  D --> J[Evidence timeline]
-  J --> K[Limnora JSON / FHIR prototype export]
+  A[Citizen observation] --> B[Independent image-first AI]
+  B --> C{Support or uncertainty}
+  C --> D[Human review stays open]
+  C --> E[Focused revisit question]
+  E --> F[Linked second visit]
+  F --> G[Additional context]
+  D --> H[Reviewer workbench]
+  G --> H
+  H --> I[Researcher brief and source evidence]
 ```
 
-## Trust boundary
+The signature comparison shows the observer label beside the AI interpretation, visible evidence, alternatives and qualitative uncertainty. AI receives the photograph without the observer category or descriptive guess. The original label remains unchanged. A disputed record keeps its evidence state even when it is a linked revisit.
 
-Limnora knows what the observer submitted, what is visibly interpretable in the uploaded image, map/provenance metadata, model output and uncertainty, and linked review/revisit history.
+## 60-second judge walkthrough
 
-Limnora does not know laboratory water quality, toxicity, pathogens, potability, true pollutant concentrations, guaranteed photo authenticity, guaranteed observer identity, or guaranteed physical presence.
+1. Select mapped inland water, or explicitly declare an unmapped freshwater body.
+2. Add a permissioned original photo, actual visit time and field notes. Unknown is a valid answer.
+3. Run independent AI screening and inspect the observer-versus-AI comparison.
+4. Add a reasoned human review. Suggestions remain traceable.
+5. Plan a focused revisit. If a genuine second visit exists, compare newly added context and observer-reported differences.
+6. Open **Review** to inspect priorities, source evidence, next questions and linked visits.
+7. Download a researcher brief or Limnora JSON.
 
-## Quick start
+“See the evidence loop” opens only the configured showcase observation. Without a configured record, it guides the user to submit genuine evidence. Set `NEXT_PUBLIC_SHOWCASE_OBSERVATION_ID` only after obtaining permission for that record.
 
-Use Node.js 22 or newer and npm. The committed `package-lock.json` is used by these instructions.
+## Real field case
+
+**Pending permissioned original photographs. Revisit pending.**
+
+No real field case or completed environmental improvement is asserted. Supply a water-body identity/location, actual observation time, original photograph, permission to publish/process it, observer interpretation and field notes. A second visit needs a genuinely later time and a new photo; it must not be fabricated.
+
+The [field-case requirements](evaluation/FIELD-CASE.md) describe exact inputs. A changed observation does not establish ecological improvement or deterioration.
+
+## Evaluation
+
+**Evaluation pending permissioned original field photographs.**
+
+The [evaluation harness](evaluation/README.md) reads saved results by observation ID and reports sample size, completed screenings, failures, relevance, coarse-category agreement, uncertainty, disagreements, model and prompt version. [Results status](evaluation/RESULTS.md) contains no invented metrics.
+
+Small convenience samples do not establish deployment accuracy. Team labels are not expert ecological ground truth unless an expert actually supplied them. Integration smoke tests verify the software workflow and do not measure ecological accuracy.
+
+## Reviewer → researcher handoff
+
+The dedicated **Review** view gives each loaded record a transparent priority: field review suggested, interpretation review, more evidence needed or review open. Priorities derive from reported concerns and missing/conflicting evidence; they are not danger rankings.
+
+Each card provides a review reason, source photograph, original category, independent interpretation, separate evidence/visit badges, next field question and linked-revisit count. Downloadable researcher briefs preserve these sources and limitations for a freshwater researcher or local environmental officer to review.
+
+## One Health relevance
+
+- **Environment:** document visible vegetation, litter, water appearance and water extent.
+- **Animals and ecosystems:** retain aquatic-life and habitat context for qualified review.
+- **Communities:** make observations understandable and support stewardship and evidence handoff.
+
+Category guidance links to claim-specific EPA, USGS, environmental-agency and National Weather Service references. These provide general context, not local diagnoses, species confirmation or an official partnership.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  UI[Next.js / React citizen interface] --> API[Server validation and Sharp EXIF stripping]
+  UI --> MAP[MapLibre / OpenFreeMap / OSM tiles]
+  MAP --> OSM[Overpass geometry and signed selection]
+  OSM --> API
+  API --> DB[(Supabase evidence and JPEG storage)]
+  DB --> AI[Server-side OpenRouter image inference]
+  AI --> REVIEW[Evidence, alternatives, uncertainty and immutable-label comparison]
+  REVIEW --> HUMAN[Additive human reviews and linked revisits]
+  HUMAN --> WORK[Reviewer workbench]
+  WORK --> BRIEF[Researcher Markdown brief / Limnora JSON]
+```
+
+Experimental FHIR export is secondary; [interoperability notes](docs/INTEROPERABILITY.md) document its prototype-only status. No profile validation or OneAquaHealth integration is claimed.
+
+## Responsible AI and trust boundary
+
+Limnora stores observer statements, image-supported interpretations, model/prompt provenance, map-source metadata and review/revisit relationships. Human reviews are additive; original labels remain immutable.
+
+Reports are saved before screening. AI outages preserve saved reports and failed reassessments preserve a previous successful result. Unavailable screening is displayed with a recovery action.
+
+Photographs do not establish pathogens, toxicity, potability, water safety, measured pollution, ecological improvement or authenticity. Browser corroboration does not establish unique people or physical presence. Mapping and observer freshwater declarations do not measure salinity.
+
+## Technical highlights and scale
+
+Next.js, React, TypeScript, Supabase, OpenRouter and Sharp power the evidence workflow. Photos are decoded, bounded, resized and re-encoded without EXIF. Keys stay server-side; public responses remove owner/reviewer/photo hashes and provider attempt diagnostics.
+
+Observation reads are bounded to at most 200 rows per request, ordered by observation date and ID, with offset pagination and optional observation-ID, water-body, category, date and map-bounds filters. The UI loads 100 at a time and deduplicates appended pages; opening a record fetches its water-body context. Counts describe loaded records, not a complete environmental survey. Offset pages can shift when concurrent observations arrive; refresh restarts pagination.
+
+Shared rate limits, background AI jobs, organization accounts and staffed moderation remain future production work. Current rate limits and AI locks are process-local. Content removal is performed by the maintainer through Supabase using exact report/storage IDs.
+
+## Testing
 
 ```sh
 npm ci
-```
-
-Configure Supabase and environment variables below, then:
-
-```sh
-npm run dev
-# Open http://localhost:3000
-```
-
-For production: `npm run build`, then `npm run start`. Deployment needs the same environment variables on the server; never upload `.env.local`.
-
-## Judge walkthrough
-
-Select a mapped or explicitly observer-declared water body → submit a permissioned original photograph and field context → inspect independent image screening and uncertainty → save a reasoned human review → add a linked revisit → compare visits and export a water-body evidence brief.
-
-Read [the walkthrough](JUDGE-WALKTHROUGH.md), [verification status](IMPLEMENTATION-STATUS-2026-10-04.md) and [evaluation instructions](evaluation/README.md). There is no fabricated field case or accuracy score. Visual/browser QA remains pending. Hosted demo and video URLs are not yet documented; the repository alone is not the complete hackathon entry.
-
-## Real integrations
-
-1. Create a Supabase project.
-2. Run `supabase/schema.sql` in the Supabase SQL editor.
-3. Copy `.env.example` to `.env.local` and add the Supabase URL, server-only secret key, and OpenRouter key. Never prefix server secrets with `NEXT_PUBLIC_` or commit `.env.local`.
-4. Run `supabase/server-access-hardening.sql`, then `supabase/freshwater-readiness.sql` in the SQL editor. These preserve data and restrict database access to the server role. The readiness upgrade adds OSM identity/provenance and structured field context. The connected project was upgraded on 4 October 2026.
-5. Run `npm run dev`.
-
-Environment variables are documented in `.env.example`. `SUPABASE_SECRET_KEY` is the server-role credential. `OPENROUTER_MODEL` selects a vision-capable model; free availability and quotas vary. Explicit paid selection can consume credits. The anon key is not authorization to write protected tables. Manual reporting works without GPS; use HTTPS or localhost for browser location permissions.
-
-The server routes `/api/observations` and `/api/assess-observation` keep provider credentials out of browser code. The observation route persists public water-body reports in Supabase; the AI route calls OpenRouter server-side and returns a safe fallback when unavailable.
-
-## Safety
-
-Limnora is community screening, not laboratory testing. It must not certify water safety, diagnose illness, or replace professional inspection.
-
-## Implemented Evidence Loop (primary Track 3)
-
-- Actual vision inference through OpenRouter, checked against its current image-capable model catalog. Structured JSON where supported, bounded free-model fallback, truncation/error checks and clear unavailable states. Free quota/availability is not guaranteed.
-- Original category remains immutable. Human correction suggestions, disagreement and follow-up context are saved in the existing assessment JSON. Model history and human reviews use compare-and-swap updates to avoid overwriting concurrent changes.
-- New mapped reports resolve inland geometry through OSM Overpass, receive a signed 30-minute selection token, and reuse a unique `osm:way:id` or `osm:relation:id` body key. Selection uses the same server lookup for either basemap. OSM coverage can be incomplete, and distinct mapped features may represent parts of one physical system. Unmapped bodies are explicitly observer-declared and can be reused through the saved-body selector. Neither mapping nor a declaration is a salinity measurement.
-- Revisit photos are new reports linked to the parent report and water-body ID. Observation date is separate from submission date. Legacy reports without a water-body ID remain accessible.
-- Photos are decoded, bounded to 25 megapixels, resized, rotated and re-encoded as JPEG without EXIF. Hashes flag duplicate derivatives; this is not fraud or generated-image detection.
-- Browser identity supports corroboration and original-browser review attribution; clearing cookies bypasses that identity. No signup required. Public API responses remove private identity hashes.
-- Field notes capture movement, colour, clarity, bank litter, aquatic life and naturally noticed odour with Unknown choices. Observation coordinates remain separate from the body's saved reference point. Insights and body timelines use visit date with consistent filters, and explain why evidence needs follow-up. They are not water-health scores or validated predictions.
-- Image-first AI receives no observer category or descriptive guess. Its interpretation is compared to the immutable observer label on the server. The configured model may be paid only if explicitly selected; automatic fallback models remain free. One Health context is curated Limnora guidance linked to the project mission, not free-form model diagnosis. Prompt compliance is not a scientific safety guarantee.
-- Public responses omit owner/reviewer hashes, image hashes and provider attempt diagnostics. Review suggestions remain attributed community suggestions, never expert adjudications. A prior completed screening remains visible after a failed latest retry.
-- Per-process request limiting and assessment locks provide basic prototype protection. Public multi-instance deployment needs shared rate limits and stronger moderation.
-
-## Verification
-
-```sh
 npm run test
 npm run typecheck
 npm run build
+node scripts/freshwater-checks.mjs
+node --env-file=.env.local scripts/evidence-smoke.mjs
 ```
 
-`npx tsc --noEmit`
+The configured integration smoke uses explicitly labeled temporary synthetic fixtures, tests persistence, EXIF removal, duplicate rejection, immutable labels, additive reviews, actual inference and linked visits, then removes only its own records/photos. It consumes provider quota and requires an existing public fixture. It is not a permissioned field evaluation.
 
-`node scripts/freshwater-checks.mjs`
+## Setup
 
-Original-photo evaluation instructions are in `evaluation/README.md`. No field-accuracy score is claimed until a permissioned labeled dataset is supplied and evaluated.
+Use Node.js 22 or newer and npm with the committed `package-lock.json`.
 
-`node --env-file=.env.local scripts/evidence-smoke.mjs`
+1. Run `npm ci`.
+2. Create a Supabase project and apply `supabase/schema.sql`, `supabase/server-access-hardening.sql`, then `supabase/freshwater-readiness.sql`.
+3. Copy `.env.example` to `.env.local`. Set the Supabase URL, server-only `SUPABASE_SECRET_KEY`, `OPENROUTER_API_KEY` and vision-capable `OPENROUTER_MODEL`.
+4. Run `npm run dev` and open `http://localhost:3000`.
 
-The smoke test creates explicitly labeled temporary synthetic fixtures, tests upload/EXIF stripping/duplicates, human review, actual vision inference, linked follow-up and refresh persistence. It deletes only its own test records and photos. It is an integration test, NOT ecological accuracy validation. It requires a pre-existing public fixture photo and consumes free API quota.
+Production: `npm run build`, then `npm run start`. Configure server environment values in the host; never upload or commit `.env.local`. `/api/health` checks configuration shape only, not live database/provider connectivity. Free provider availability varies; an explicitly configured paid model may consume credits.
 
-Before submission: evaluate permissioned original freshwater photos, publish source with licenses/setup instructions, deploy a working prototype, and record a 3–5 minute honest demo. Do not present synthetic images or test records as real field evidence. No winner or worldwide-novelty claim is made.
+GPS is optional; manual reporting remains available. Browser location requires HTTPS or localhost. OSM coverage may miss small ponds; observer-declared provenance stays visible.
 
-## Architecture and handoff
+## Submission and limitations
 
-Browser → Next.js routes → Supabase REST / stripped public JPEG storage. Map selection → OSM Overpass geometry → signed selection token → unique water-body key. Saved photo → OpenRouter image inference → structured evidence → immutable observer comparison → community reviews and revisit timeline. Primary OneAquaHealth Track 3; supporting Track 1 and Track 2. No claim of IEEE certification, FHIR conformance, measured pollution, prediction, or verified physical presence.
+The required 3–5 minute video remains pending. Owner eligibility, registration, project dates and final Devpost submission require verification. The official event website prevails over repository guidance.
 
-OpenStreetMap data is ODbL; attribution appears on the map. MapLibre GL JS is BSD-3-Clause; other dependencies retain their package licenses. Submitted image rights remain with their owners; consent to public display is not a blanket reuse license.
+Permissioned field evaluation, a genuine revisit and hosted verification remain pending. Local browser checks covered Explore, Review and the evidence dialog, plus responsive layout bounds; these are not a complete cross-browser/device or failure-path audit. See the judge guide for verification scope. No IEEE endorsement, guaranteed win or worldwide-novelty claim is made.
 
-Public photo moderation is operated by the project maintainer: review content concerns, identify the exact observation UUID and storage object, and remove inappropriate content through the Supabase dashboard. There is no staffed emergency response or automatic moderation service. Anonymous feedback remains susceptible to browser-identity resets.
+## License and attribution
 
-## License and content rights
+Original code: [MIT License](LICENSE), copyright Sumit Raikwar. Map data, dependencies and submitted photographs retain their own rights; see [third-party notices](THIRD-PARTY-NOTICES.md). The code license does not license user photographs or hackathon branding.
 
-Original project code is released under the [MIT License](LICENSE), copyright Sumit Raikwar. Third-party packages, map data, tiles and submitted photographs retain their own rights; see [third-party notices](THIRD-PARTY-NOTICES.md). The code license does not license user photos or confer rights to hackathon/IEEE branding.
+**Limnora turns disagreement into better data.**

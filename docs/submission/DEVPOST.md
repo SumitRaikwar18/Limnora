@@ -69,7 +69,7 @@ Next.js, React, TypeScript, Supabase, OpenRouter, Sharp, MapLibre, OpenFreeMap/O
 
 ## Public demo link
 
-TODO: add deployed URL.
+Pending owner deployment and verification.
 
 ## Public repository link
 
@@ -77,7 +77,7 @@ https://github.com/SumitRaikwar18/Limnora
 
 ## Demo video
 
-TODO: add 3-5 minute video URL.
+Pending owner recording and public upload.
 
 ## Screenshot shot list
 

@@ -9,7 +9,7 @@ Limnora now offers two exports from a water-body evidence record:
 
 ## FHIR status
 
-- FHIR version target: generic JSON Bundle structure compatible with common FHIR resource shapes.
+- FHIR version target: R4 (4.0.1). Full R4 validator and profile validation have not been run. Resource references use illustrative absolute URLs; these are not live FHIR endpoints.
 - Profile validation: not performed.
 - OneAquaHealth profile validation: not performed.
 - Claim level: experimental FHIR interoperability prototype.
