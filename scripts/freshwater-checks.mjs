@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict'
-import {readFileSync} from 'node:fs'
+import {readFileSync,existsSync} from 'node:fs'
 import ts from 'typescript'
+const manifest=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'))
+const lock=JSON.parse(readFileSync(new URL('../package-lock.json',import.meta.url),'utf8'))
+assert.deepEqual(lock.packages[''].dependencies,manifest.dependencies)
+assert.deepEqual(lock.packages[''].devDependencies,manifest.devDependencies)
+assert(manifest.packageManager.startsWith('npm@'))
+assert(!existsSync(new URL('../pnpm-lock.yaml',import.meta.url)))
+assert.equal(JSON.parse(readFileSync(new URL('../vercel.json',import.meta.url),'utf8')).installCommand,'npm ci')
 async function moduleAt(path){const source=ts.transpileModule(readFileSync(new URL(path,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;return import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'))}
 const geo=await moduleAt('../lib/water-geometry.ts'),fresh=await moduleAt('../lib/freshwater.ts')
 const queries=await moduleAt('../lib/observation-query.ts')

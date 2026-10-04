@@ -152,6 +152,8 @@ Enable **Web Analytics** in the Vercel project dashboard, then deploy. No analyt
 
 Use Node.js 22 or newer and npm with the committed `package-lock.json`.
 
+The repository intentionally uses **npm only**. `vercel.json` pins installation to `npm ci` and the build to `npm run build`. Do not add a second package-manager lockfile: a stale pnpm lock can make deployment choose a dependency tree that differs from the tested npm tree. If a Vercel dashboard override still specifies pnpm, clear it or set the install command to `npm ci`.
+
 1. Run `npm ci`.
 2. Create a Supabase project and apply `supabase/schema.sql`, `supabase/server-access-hardening.sql`, then `supabase/freshwater-readiness.sql`.
 3. Copy `.env.example` to `.env.local`. Set the Supabase URL, server-only `SUPABASE_SECRET_KEY`, `OPENROUTER_API_KEY` and vision-capable `OPENROUTER_MODEL`.
