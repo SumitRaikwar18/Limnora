@@ -1,4 +1,4 @@
-import { Analytics } from '@vercel/analytics/next'
+import { PrivacyAnalytics } from '@/components/privacy-analytics'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import {siteOrigin,indexable,siteDescription,socialImage,jsonLd} from '@/lib/site'
@@ -36,7 +36,7 @@ export default function RootLayout({
       <body className="antialiased">
         {siteOrigin && <script type="application/ld+json" dangerouslySetInnerHTML={{__html:jsonLd({'@context':'https://schema.org','@type':'WebApplication',name:'Limnora',url:siteOrigin,image:siteOrigin+'/Limnora.png',description:siteDescription,applicationCategory:'EducationalApplication',operatingSystem:'Web browser',inLanguage:'en',featureList:['Freshwater citizen observations','Independent image-first AI screening','Additive human review','Targeted revisits','Researcher evidence briefs'],isAccessibleForFree:true})}} />}
         {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        {process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production' && <PrivacyAnalytics />}
       </body>
     </html>
   )

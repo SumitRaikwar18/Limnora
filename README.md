@@ -132,6 +132,24 @@ The configured integration smoke uses explicitly labeled temporary synthetic fix
 
 ## Setup
 
+### Vercel environment and analytics
+
+Use the Next.js preset, `npm ci` for installation and `npm run build` for the build. Configure these in Project Settings → Environment Variables:
+
+| Variable | Value / purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project HTTPS URL |
+| `SUPABASE_SECRET_KEY` | Supabase server secret/service-role key; never prefix with `NEXT_PUBLIC_` |
+| `OPENROUTER_API_KEY` | Server-only OpenRouter key |
+| `OPENROUTER_MODEL` | Your tested image-capable model ID; current example is `qwen/qwen3.8-27b:free` and provider quotas still apply |
+| `NEXT_PUBLIC_SITE_URL` | Verified production HTTPS origin, without a path; required for correct social/canonical URLs and indexing |
+| `NEXT_PUBLIC_SHOWCASE_OBSERVATION_ID` | Optional permissioned original showcase report ID |
+| `NEXT_PUBLIC_OSM_TILE_URL` | Optional tile override; leave unset for the default map |
+
+The legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY` example is not read by current code and is not required. Vercel supplies `NODE_ENV` and `VERCEL_ENV`; do not manually override them. Keep real database/AI credentials scoped to Production; use separate test resources for Preview if preview writes are wanted. Redeploy after environment changes, especially public variables baked into the build. Apply the documented Supabase schema/storage/hardening migrations before testing the hosted flow.
+
+Enable **Web Analytics** in the Vercel project dashboard, then deploy. No analytics API key is required. The existing analytics SDK is wrapped in a small client component and enabled only for Vercel Production deployments. It counts allowlisted public page views with query strings/fragments removed; custom events and report/API paths are dropped. It does not send photos, observation text, GPS fields or review content as custom analytics. Browser/provider network metadata still exists; this is not an anonymity guarantee. Dashboard event collection must be verified after deployment.
+
 Use Node.js 22 or newer and npm with the committed `package-lock.json`.
 
 1. Run `npm ci`.
