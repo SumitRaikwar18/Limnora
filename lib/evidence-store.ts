@@ -1,20 +1,31 @@
 import 'server-only'
 import { supabaseRest } from './supabase-rest'
+import { aiAssessmentSupport } from './freshwater'
 
 export async function observation(id:string) {
  const response=await supabaseRest('observations?id=eq.'+id+'&select=*')
  if(!response.ok)throw Error('Database unavailable')
  return (await response.json())[0]
 }
-export function publicEvidence(value:any) {
+export function publicEvidence(value:any, observerCategory?: string) {
  if(!value)return value
  const {owner_hash,photo_hash,attempt_history,...safe}=value
- return {...safe,review_history:(safe.review_history||[]).map(({reviewer_hash,...event}:any)=>event)}
+ const history = (safe.assessment_history || []).map((evt: any) => {
+   const obsCat = evt.observer_category || observerCategory
+   const supported = obsCat ? aiAssessmentSupport(evt, obsCat) : Boolean(evt.observation_supported)
+   return { ...evt, observation_supported: supported }
+ })
+ return {
+   ...safe,
+   assessment_history: history,
+   review_history:(safe.review_history||[]).map(({reviewer_hash,...event}:any)=>event)
+ }
 }
 export function publicObservation(row:any){
- const ai=publicEvidence(row.ai_assessment)
+ const ai=publicEvidence(row.ai_assessment, row.category)
  // A different coarse category cannot count as agreement, even if a model says yes.
- return {...row,ai_assessment:ai?.status==='completed'?{...ai,observer_category:row.category,observation_supported:Boolean(ai.observation_supported&&ai.image_relevant&&ai.predicted_category===row.category)}:ai}
+ const supported = ai?.status === 'completed' ? aiAssessmentSupport(ai, row.category) : false
+ return {...row,ai_assessment:ai?.status==='completed'?{...ai,observer_category:row.category,observation_supported:supported}:ai}
 }
 // Compare-and-swap prevents a concurrent AI retry from erasing a human review.
 export async function updateEvidence(id:string, transform:(current:any)=>any) {

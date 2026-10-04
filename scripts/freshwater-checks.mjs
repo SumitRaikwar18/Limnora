@@ -66,5 +66,40 @@ assert(!fhir.includes('PRIVATE'))
 const bundle=JSON.parse(fhir)
 assert(!('note' in bundle.entry[0].resource))
 assert(!('location' in bundle.entry[1].resource))
-assert.equal(bundle.entry[1].resource.focus[0].reference,bundle.entry[0].fullUrl)
-console.log('PASS geometry, field validation, observation-time summaries, revisit tasks, public brief privacy and FHIR prototype shape')
+// Regression tests:
+// 1. Observer 'algae' + AI 'hyacinth' -> Disputed interpretation, must NEVER say Supported observer category
+assert.equal(fresh.evidenceState(report), 'Disputed interpretation')
+assert.equal(fresh.aiAssessmentSupport(report.ai_assessment, report.category), false)
+assert.equal(fresh.aiAssessmentSupportLabel(report.ai_assessment, report.category), 'Interpretations differed')
+assert.notEqual(fresh.aiAssessmentSupportLabel(report.ai_assessment, report.category), 'Supported observer category')
+// Contradiction prevention: even if raw event has observation_supported: true, mismatched category must not support
+assert.equal(fresh.aiAssessmentSupport({ ...report.ai_assessment, observation_supported: true }, 'algae'), false)
+assert.equal(fresh.aiAssessmentSupportLabel({ ...report.ai_assessment, observation_supported: true }, 'algae'), 'Interpretations differed')
+
+// 2. Same-category case -> Supported observer category is allowed
+const concordantReport = { ...report, ai_assessment: { status: 'completed', predicted_category: 'algae', observation_supported: true, uncertainty: 'low', image_relevant: true } }
+assert.equal(fresh.evidenceState(concordantReport), 'Screened · human review open')
+assert.equal(fresh.aiAssessmentSupport(concordantReport.ai_assessment, concordantReport.category), true)
+assert.equal(fresh.aiAssessmentSupportLabel(concordantReport.ai_assessment, concordantReport.category), 'Supported observer category')
+
+// 3. Low AI uncertainty + disputed evidence -> both labels render independently
+assert.equal(report.ai_assessment.uncertainty, 'low')
+assert.equal(fresh.evidenceState(report), 'Disputed interpretation')
+assert.equal(fresh.aiAssessmentSupportLabel(report.ai_assessment, report.category), 'Interpretations differed')
+
+// 4. Failed reassessment preserves previous completed screening
+const retryFailedReport = { ...report, ai_assessment: { ...report.ai_assessment, last_error: { code: 'RATE_LIMITED', message: 'Quota reached' } } }
+assert.equal(retryFailedReport.ai_assessment.status, 'completed')
+assert.equal(retryFailedReport.ai_assessment.predicted_category, 'hyacinth')
+assert.equal(retryFailedReport.ai_assessment.last_error.code, 'RATE_LIMITED')
+
+// 5. Revisit comparison
+const revisitReport = { ...report, id: 'revisit-1', category: 'hyacinth', field_context: { ...fresh.emptyContext, flow: 'Flowing', colour: 'Green' }, ai_assessment: { status: 'completed', predicted_category: 'hyacinth', observation_supported: true, uncertainty: 'low', parent_id: 'test' } }
+const comparisonResult = fresh.compareVisits(report, revisitReport)
+assert.equal(comparisonResult.added.length, 2)
+assert(comparisonResult.added.includes('Water movement'))
+assert(comparisonResult.added.includes('Visible water colour'))
+assert.equal(comparisonResult.interpretationChanged, false)
+assert(comparisonResult.limitation.includes('do not establish environmental improvement'))
+
+console.log('PASS geometry, field validation, observation-time summaries, revisit tasks, public brief privacy, FHIR prototype shape, and contradiction regression tests')

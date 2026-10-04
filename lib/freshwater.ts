@@ -30,9 +30,39 @@ export const guidance: Record<string,{meaning:string;next:string;source:string}>
   flooding:{meaning:'Water extent can affect habitats, access and shared community spaces. This report is not a flood forecast.',next:'Record visible water extent from a safe accessible place; do not approach moving floodwater.',source:'https://www.weather.gov/safety/flood-during'},
   unusual:{meaning:'An unusual appearance is an observation to investigate, not a pollution diagnosis.',next:'Add a safe-bank photo, colour/clarity observations, and the time of your visit.',source:'https://www.usgs.gov/water-science-school/science/water-color'},
 }
+export function aiAssessmentSupport(event: any, observerCategory: string): boolean {
+  if (!event) return false
+  const predicted = event.predicted_category
+  if (!predicted || predicted === 'needs_review' || event.status === 'unavailable') return false
+  if (event.image_relevant === false) return false
+  if (event.uncertainty === 'high') return false
+  if (predicted !== observerCategory) return false
+  return event.observation_supported !== false
+}
+
+export function aiAssessmentSupportLabel(event: any, observerCategory: string): string {
+  if (!event) return 'Awaiting screening / review'
+  if (event.image_relevant === false) return 'Image relevance uncertain'
+  const predicted = event.predicted_category
+  if (!predicted || predicted === 'needs_review' || event.status === 'unavailable') {
+    return 'Interpretation uncertain / needs review'
+  }
+  if (predicted !== observerCategory) {
+    return 'Interpretations differed'
+  }
+  if (event.uncertainty === 'high') {
+    return 'High uncertainty · did not confirm observer category'
+  }
+  if (event.observation_supported === false) {
+    return 'Did not support observer category'
+  }
+  return 'Supported observer category'
+}
+
 export function evidenceState(report:any) {
   const ai=report.ai_assessment||{}, reviews=ai.review_history||[]
-  if(reviews.some((r:any)=>r.type==='correction'||r.type==='disagreement') || (ai.status==='completed'&&(!ai.observation_supported||ai.uncertainty==='high'))) return 'Disputed interpretation'
+  const supported = ai.status === 'completed' && aiAssessmentSupport(ai, report.category)
+  if(reviews.some((r:any)=>r.type==='correction'||r.type==='disagreement') || (ai.status==='completed'&&(!supported||ai.uncertainty==='high'))) return 'Disputed interpretation'
   if(ai.status!=='completed'||ai.unavailable)return 'Awaiting screening / review'
   if(reviews.some((r:any)=>r.type==='follow_up'))return 'Field context added'
   return 'Screened · human review open'
