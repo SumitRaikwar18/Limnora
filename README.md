@@ -19,7 +19,7 @@ Built for the [OneAquaHealth IEEE Global Hackathon 2026](https://oneaquahealth-i
 ## Quick Links
 
 - 🌐 **Live Demo**: [https://limnora.vercel.app](https://limnora.vercel.app)
-- 🎬 **Demo Video**: Pending recording and public upload (3–5 minutes)
+- 🎬 **Demo Video**: [Watch on YouTube (https://youtu.be/8IYc2NB8z7c)](https://youtu.be/8IYc2NB8z7c)
 - 📋 **Judge Guide**: [`docs/JUDGE-GUIDE.md`](docs/JUDGE-GUIDE.md)
 - 🚀 **Deployment & Setup**: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
 
