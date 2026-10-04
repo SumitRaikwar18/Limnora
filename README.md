@@ -1,10 +1,37 @@
 # Limnora
 
-Signup-free urban freshwater evidence-to-action prototype for the [OneAquaHealth IEEE Global Hackathon](https://oneaquahealth-ieee-hackathon.devpost.com/).
+Limnora turns uncertain freshwater citizen observations into traceable, human-reviewed evidence and targeted revisit questions.
 
-Limnora helps citizens turn uncertain pond, lake and stream observations into explainable AI evidence, human-reviewed interpretations and focused revisit questions. It does not diagnose freshwater safety from photographs.
+**Hackathon tagline:** From observation to evidence: AI-supported freshwater citizen science that knows when to ask humans to look again.
 
-**Track alignment:** primary Track 3 — AI-Supported Assessment; supporting Track 1 — Citizen Science UX and Track 2 — Data-to-Insight. No IEEE endorsement or scientific validation is claimed.
+**OneAquaHealth alignment:** primary Track 3 - AI-Supported Assessment; supporting Track 1 - Citizen Science UX and Track 2 - Data-to-Insight. Track 7 appears only as a prototype interoperability export, not validated FHIR conformance. No IEEE endorsement or scientific validation is claimed.
+
+**Live demo:** TODO add deployed URL.
+
+**Demo video:** TODO add 3-5 minute video URL.
+
+**Safety statement:** Limnora is community evidence, not laboratory confirmation. It does not diagnose water safety, toxicity, pathogens, potability, pollution levels or ecosystem health from a photograph.
+
+```mermaid
+flowchart LR
+  A[Citizen selects freshwater body] --> B[Observation + photo + field context]
+  B --> C[Server validates image and strips EXIF]
+  C --> D[(Supabase evidence record)]
+  D --> E[Independent image-first AI screening]
+  E --> F{Agreement or uncertainty}
+  F -->|screened| G[Human review remains open]
+  F -->|disputed or uncertain| H[Focused revisit question]
+  H --> I[Linked revisit]
+  I --> D
+  D --> J[Evidence timeline]
+  J --> K[Limnora JSON / FHIR prototype export]
+```
+
+## Trust boundary
+
+Limnora knows what the observer submitted, what is visibly interpretable in the uploaded image, map/provenance metadata, model output and uncertainty, and linked review/revisit history.
+
+Limnora does not know laboratory water quality, toxicity, pathogens, potability, true pollutant concentrations, guaranteed photo authenticity, guaranteed observer identity, or guaranteed physical presence.
 
 ## Quick start
 
