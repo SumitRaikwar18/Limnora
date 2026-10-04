@@ -69,7 +69,7 @@ Next.js, React, TypeScript, Supabase, OpenRouter, Sharp, MapLibre, OpenFreeMap/O
 
 ## Public demo link
 
-Pending owner deployment and verification.
+https://limnora.vercel.app
 
 ## Public repository link
 
