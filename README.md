@@ -1,5 +1,9 @@
 # Limnora
 
+<p align="center">
+  <img src="public/Limnora.png" alt="Limnora — freshwater evidence, independent AI screening and human review" width="100%" />
+</p>
+
 **From observation to evidence.**
 
 Limnora turns uncertain freshwater citizen observations into traceable, human-reviewed evidence and targeted revisit questions.
@@ -11,6 +15,8 @@ Built for the [OneAquaHealth IEEE Global Hackathon 2026](https://oneaquahealth-i
 [Public source repository](https://github.com/SumitRaikwar18/Limnora) · [Judge guide](docs/JUDGE-GUIDE.md) · [Submission description](docs/submission/DEVPOST.md) · [Demo script](docs/submission/DEMO-SCRIPT.md)
 
 Live demo: pending owner deployment and verification. Demo video: pending recording and public upload. These are explicit missing assets; no live URL has been supplied.
+
+Social previews use the same `public/Limnora.png` banner. Set `NEXT_PUBLIC_SITE_URL` to the verified public HTTPS origin **before building** to enable correct canonical links, Open Graph/Twitter image URLs, sitemap and indexing. Unconfigured/local/preview builds remain noindex; `VERCEL_ENV=preview` overrides indexing. Metadata and structured descriptions aid discovery, but do not guarantee search rankings or AI citations. GitHub repository social preview is a separate repository setting and must use this banner there too.
 
 ## The problem
 

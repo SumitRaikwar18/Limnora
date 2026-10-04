@@ -4,6 +4,12 @@ import ts from 'typescript'
 async function moduleAt(path){const source=ts.transpileModule(readFileSync(new URL(path,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;return import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'))}
 const geo=await moduleAt('../lib/water-geometry.ts'),fresh=await moduleAt('../lib/freshwater.ts')
 const queries=await moduleAt('../lib/observation-query.ts')
+const site=await moduleAt('../lib/site.ts')
+assert.equal(site.publicOrigin('https://limnora.example/'),'https://limnora.example')
+for(const invalid of [undefined,'','not a url','http://public.example','https://localhost','https://127.0.0.1','https://user:pass@public.example','https://public.example/path','https://public.example/?query=1'])assert.equal(site.publicOrigin(invalid),null)
+assert(!site.jsonLd({value:'</script><script>alert(1)</script>'}).includes('<'))
+assert.deepEqual(JSON.parse(site.jsonLd({value:'<safe>'})),{value:'<safe>'})
+assert.equal(site.socialImage.url,'/Limnora.png')
 const pageQuery=queries.observationQuery(new URLSearchParams('limit=25&offset=50&category=algae&bbox=78,23,79,24'))
 assert.equal(pageQuery.limit,25)
 assert.equal(pageQuery.offset,50)
