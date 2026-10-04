@@ -1,5 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap');
 @import 'tailwindcss';
+/* Final evidence workflow: responsive cards, readable states and keyboard targets. */
+[hidden]{display:none!important}
+.review-workbench{scroll-margin-top:150px;padding:20px 0}
+.review-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.reviewer-card{min-width:0;overflow-wrap:anywhere}
+.review-card-header{display:flex;align-items:center;gap:14px}
+.review-card-header img{width:82px;height:82px;object-fit:cover;border-radius:12px;flex-shrink:0}
+.review-card-header h3{margin:4px 0;font-size:22px}
+.review-card-header time{font-size:13px;color:var(--muted)}
+.reviewer-card ul{padding-left:20px;font-size:14px;line-height:1.7}
+.researcher-handoff{padding:16px;background:#edf3e9;border:1px solid #cadcc7;border-radius:12px;margin-top:18px}
+.researcher-handoff h4{margin:0;font-size:17px}
+.researcher-handoff .export-actions{margin-top:15px}
+.evidence-badges{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.evidence-badges span{border:1px solid #c7d6c5;background:#f5f8ee;border-radius:18px;padding:6px 10px;font-size:12px;overflow-wrap:anywhere}
+.interpretation-heading{font-size:19px!important;font-weight:700;color:#61431f!important;margin-top:22px!important}
+.load-more{padding:18px 0;text-align:center}
+.reviewer-card button,.export-actions button{min-height:44px;white-space:normal}
+.detail-panel,.detail-panel p,.field-notes dd{overflow-wrap:anywhere}
+@media(max-width:768px){.review-grid{grid-template-columns:1fr}.review-workbench{padding:12px 0}.export-actions>button{flex:1 1 160px}}
+@media(max-width:430px){.header-count{display:none}.header-inner{gap:8px!important}.app-header .brand{font-size:24px}.brand small{font-size:10px!important}.header-inner nav{flex-basis:100%;order:4}.header-inner .menu-button{margin-left:auto}.panel{padding:16px}.review-card-header img{width:60px;height:60px}.review-card-header h3{font-size:19px}.section-heading{flex-wrap:wrap}.toolbar{flex-wrap:wrap}.toolbar>span{margin-left:0}.product-thesis h1{font-size:32px}.categories{grid-template-columns:repeat(2,minmax(0,1fr))}.small-tag{white-space:normal}.detail-dialog{max-height:calc(100dvh - 16px)}.detail-dialog .detail-panel{padding:16px;max-height:calc(100dvh - 16px)}.time-filters{flex-wrap:wrap}.report-row{overflow-wrap:anywhere}}
  .revisit-pair {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px}
  .revisit-pair article {min-width:0;padding:14px;border:1px solid #dbe4d9;border-radius:14px}
  .revisit-pair img {width:100%;height:190px;object-fit:contain;background:#edf1e8;border-radius:10px}

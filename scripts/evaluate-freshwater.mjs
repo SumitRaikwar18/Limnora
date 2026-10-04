@@ -6,15 +6,16 @@ const manifest=JSON.parse(readFileSync(manifestPath,'utf8'))
 assert(typeof manifest.label_source==='string'&&manifest.label_source.trim(),'Record who supplied the reference labels')
 assert(Array.isArray(manifest.cases)&&manifest.cases.length,'Add permissioned original field-photo cases; empty evaluation is not a result')
 const base=process.env.LIMNORA_BASE_URL||'http://localhost:3000'
-const response=await fetch(base+'/api/observations');assert(response.ok,'Reports unavailable')
-const {observations}=await response.json(),results=[]
+const results=[]
 const categories=['hyacinth','algae','grass','litter','fish','wildlife','flooding','unusual','needs_review']
 for(const entry of manifest.cases){
  assert(entry.permissioned_original===true,'Only permissioned original photos belong in field evaluation')
  assert(categories.includes(entry.reference_category),'Invalid reference category')
  assert(typeof entry.ambiguous==='boolean','Record whether this case is ambiguous')
  assert(typeof entry.expected_relevance==='boolean','Record expected image relevance')
- const row=observations.find(r=>r.id===entry.observation_id);assert(row,'Report absent from current 200-record window')
+ assert(/^[0-9a-f-]{36}$/i.test(entry.observation_id),'Invalid observation ID')
+ const response=await fetch(base+'/api/observations?id='+encodeURIComponent(entry.observation_id));assert(response.ok,'Report unavailable')
+ const {observations}=await response.json(),row=observations[0];assert(row,'Saved report not found')
  const ai=row.ai_assessment||{},completed=ai.status==='completed'&&!ai.unavailable
  const outcome=!completed?'failed':ai.predicted_category==='needs_review'||ai.uncertainty==='high'?'uncertain':ai.predicted_category===entry.reference_category?'correct':'incorrect'
  results.push({observation_id:row.id,permissioned_original:true,reference_category:entry.reference_category,label_source:manifest.label_source,ambiguous:entry.ambiguous,expected_relevance:entry.expected_relevance,observer_category:row.category,predicted_category:ai.predicted_category||null,image_relevant:ai.image_relevant??null,uncertainty:ai.uncertainty||null,outcome,observer_reference_agreement:row.category===entry.reference_category,ai_reference_agreement:outcome==='correct',requires_review:outcome==='uncertain'||outcome==='incorrect'||!completed,model:ai.model||null,prompt_version:ai.prompt_version||null,assessed_at:ai.assessed_at||null,latency_ms:ai.latency_ms||null,latest_retry_error:ai.last_error?.code||null,notes:entry.notes||''})

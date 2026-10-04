@@ -3,6 +3,17 @@ import {readFileSync} from 'node:fs'
 import ts from 'typescript'
 async function moduleAt(path){const source=ts.transpileModule(readFileSync(new URL(path,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;return import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'))}
 const geo=await moduleAt('../lib/water-geometry.ts'),fresh=await moduleAt('../lib/freshwater.ts')
+const queries=await moduleAt('../lib/observation-query.ts')
+const pageQuery=queries.observationQuery(new URLSearchParams('limit=25&offset=50&category=algae&bbox=78,23,79,24'))
+assert.equal(pageQuery.limit,25)
+assert.equal(pageQuery.offset,50)
+const parsedQuery=new URLSearchParams(pageQuery.path.split('?')[1])
+assert.equal(parsedQuery.get('order'),'observed_at.desc,id.desc')
+assert.equal(parsedQuery.get('limit'),'26')
+assert.equal(parsedQuery.get('category'),'eq.algae')
+assert(parsedQuery.get('and').includes('longitude.gte.78'))
+for(const bad of ['limit=201','limit=0','offset=-1','waterBodyId=x','category=algae%26or=bad','bbox=1,2,0,3','bbox=,2,3,4','since=invalid'])assert.throws(()=>queries.observationQuery(new URLSearchParams(bad)))
+assert.equal(new URLSearchParams(queries.observationQuery(new URLSearchParams('waterBodyId=00000000-0000-0000-0000-000000000001')).path.split('?')[1]).get('water_body_id'),'eq.00000000-0000-0000-0000-000000000001')
 const ring=[{lat:0,lon:0},{lat:0,lon:2},{lat:2,lon:2},{lat:2,lon:0},{lat:0,lon:0}]
 assert(geo.matchesWater({type:'way',tags:{natural:'water',water:'pond'},geometry:ring},1,1))
 assert(!geo.matchesWater({type:'way',tags:{natural:'water',salt:'yes'},geometry:ring},1,1))

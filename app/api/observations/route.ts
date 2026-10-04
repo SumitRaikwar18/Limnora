@@ -5,10 +5,14 @@ import { categories, identity, protect, uuid, withIdentity } from '@/lib/request
 import { observation, publicObservation } from '@/lib/evidence-store'
 import {bodyKinds,parseContext} from '@/lib/freshwater'
 import {readSource} from '@/lib/water-source'
-export async function GET(){try{
- const r=await supabaseRest('observations?select=*,confirmations(count),water_bodies(*)&order=observed_at.desc&limit=200')
+import {observationQuery} from '@/lib/observation-query'
+export async function GET(request:Request){
+ let query;try{query=observationQuery(new URL(request.url).searchParams)}catch(e){return NextResponse.json({error:(e as Error).message},{status:400})}
+ try{
+ const r=await supabaseRest(query.path)
  if(!r.ok)throw Error('Database tables unavailable')
- return NextResponse.json({observations:(await r.json()).map((row:any)=>{const {confirmations,water_bodies,...rest}=row;return {...publicObservation(rest),water_body:water_bodies,confirmation_count:confirmations?.[0]?.count??0}}),limit:200})
+ const rows=await r.json(),hasMore=rows.length>query.limit
+ return NextResponse.json({observations:rows.slice(0,query.limit).map((row:any)=>{const {confirmations,water_bodies,...rest}=row;return {...publicObservation(rest),water_body:water_bodies,confirmation_count:confirmations?.[0]?.count??0}}),limit:query.limit,offset:query.offset,hasMore,nextOffset:hasMore?query.offset+query.limit:null},{headers:{'Cache-Control':'no-store'}})
  }catch{return NextResponse.json({error:'Database connection unavailable. Please retry.'},{status:503})}}
 export async function POST(request:Request){
  const denied=protect(request,'upload',6);if(denied)return denied

@@ -27,6 +27,11 @@ try{
  const secondFixture=await sharp(source).resize(900).jpeg({quality:76}).toBuffer();const follow=await post('/api/observations',form(secondFixture,row.id));assert.equal(follow.status,200,JSON.stringify(follow.data));ids.push(follow.data.observation.id);photos.push(follow.data.observation.photo_url.split('/').at(-1));assert.equal(follow.data.observation.water_body_id,bodyId);assert.equal(follow.data.observation.latitude,23.8301);assert.equal(follow.data.observation.ai_assessment.parent_id,row.id)
  const refreshed=(await (await fetch(base+'/api/observations')).json()).observations;assert.equal(refreshed.filter(r=>r.water_body_id===bodyId).length,2);assert.equal(refreshed.find(r=>r.id===row.id).ai_assessment.review_history.length,1)
  console.log('PASS linked follow-up and timeline survive refresh')
+ const scoped=await (await fetch(base+'/api/observations?limit=1&waterBodyId='+bodyId)).json();assert.equal(scoped.observations.length,1);assert.equal(scoped.hasMore,true);assert.equal(scoped.nextOffset,1);assert.equal(scoped.observations[0].water_body_id,bodyId)
+ const next=await (await fetch(base+'/api/observations?limit=1&offset=1&waterBodyId='+bodyId)).json();assert.equal(next.observations.length,1);assert.notEqual(next.observations[0].id,scoped.observations[0].id);assert.equal(next.hasMore,false)
+ const byId=await (await fetch(base+'/api/observations?id='+row.id)).json();assert.equal(byId.observations.length,1);assert.equal(byId.observations[0].id,row.id)
+ const invalidQuery=await fetch(base+'/api/observations?limit=999999');assert.equal(invalidQuery.status,400)
+ console.log('PASS bounded pagination, stable distinct pages, body scope, direct ID lookup and invalid query rejection')
 }finally{
  for(const id of ids)await rest('observations?id=eq.'+id,{method:'DELETE'})
  for(const path of photos){const r=await fetch(db+'/storage/v1/object/observation-photos/'+path,{method:'DELETE',headers});assert(r.ok,'Test photo cleanup failed')}
